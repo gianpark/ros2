@@ -1,28 +1,19 @@
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/int32.hpp"
-#include <memory>
-#include <functional>
+cmake_minimum_required(VERSION 3.5)
+project(psub1-1)
 
-void sub_callback(rclcpp::Node::SharedPtr node,
-                  const std_msgs::msg::Int32::SharedPtr msg)
-{
-    RCLCPP_INFO(node->get_logger(), "Subscribe: %d", msg->data);
-}
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 
-int main(int argc, char* argv[])
-{
-    rclcpp::init(argc, argv);
+add_executable(pub1-1 src/pub1-1.cpp)
+ament_target_dependencies(pub1-1 rclcpp std_msgs)
 
-    auto node = std::make_shared<rclcpp::Node>("node_sub1_1");
-    auto qos_profile = rclcpp::QoS(rclcpp::KeepLast(10));
+add_executable(sub1-1 src/sub1-1.cpp)
+ament_target_dependencies(sub1-1 rclcpp std_msgs)
 
-    std::function<void(const std_msgs::msg::Int32::SharedPtr)> fn =
-        std::bind(sub_callback, node, std::placeholders::_1);
+install(TARGETS
+  pub1-1
+  sub1-1
+  DESTINATION lib/${PROJECT_NAME})
 
-    auto sub = node->create_subscription<std_msgs::msg::Int32>(
-        "topic_1_1", qos_profile, fn);
-
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
-}
+ament_package()
