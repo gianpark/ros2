@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-#include "dxl.hpp"
+#include "dxl3/dxl.hpp"
 
 int Dxl::getch(void)
 {
