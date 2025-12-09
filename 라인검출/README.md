@@ -169,7 +169,7 @@ auto end = std::chrono::steady_clock::now();
 std::chrono::duration<double> elapsed = end - start;
 
 
-약 0.02~0.04초(25~45FPS)의 처리 속도를 보임.
+약 0.02 ~ 0.04초(25 ~ 45FPS)의 처리 속도를 보임.
 
 4. 실행 결과
    
