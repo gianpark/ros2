@@ -1,10 +1,7 @@
 결과 동영상 : https://youtu.be/ZymWpI6bNIE
 
-1. 제목
-
-ROS2 기반 라인트레이싱 영상 처리 실습 보고서
-
-2. 작성자
+ROS2 기반 영상 퍼블리싱 및 개선형 라인 추적 실습 보고서
+1. 작성자
 
 이름: 박기안
 
@@ -12,114 +9,141 @@ ROS2 기반 라인트레이싱 영상 처리 실습 보고서
 
 작성일: 2025/12/09
 
-3. 목적
+2. 실습 목적
 
-ROS2와 OpenCV를 활용하여 동영상에서 라인을 검출하고, 라인 중심과 화면 중심의 오차를 계산한다.
+ROS2와 OpenCV를 활용하여 동영상 데이터를 ROS2 토픽으로 퍼블리시하고, 구독하여 실시간 라인 추적 수행
 
+기존 단순 라인 검출에서 후보 필터링, 속도 제한, 추적 손실 처리를 추가하여 안정적인 라인 추적 알고리즘 구현
 
-자율주행 로봇 라인트레이싱 알고리즘 개발에 적용 가능한 기반을 마련한다.
+실시간 처리 성능 측정 및 영상 디버깅 이해
 
-4. 실험 환경
+3. 실습 환경
 
-하드웨어: PC (CPU: AMD Ryzen 5 5500U, RAM: 16GB, GPU: 없음)
+OS: Ubuntu 22.04 LTS
 
-소프트웨어: Ubuntu 22.04, ROS2 Humble, OpenCV 4.8.1, C++17
+ROS2 버전: Humble
 
-사용 패키지: rclcpp, sensor_msgs, cv_bridge
+OpenCV: 4.x
 
+개발 언어: C++17
 
-5. 코드 구조 및 처리 과정
-5.1 Class 구조
+개발 도구: Visual Studio Code / Colcon 빌드
 
-VideoPublisher 클래스
+4. 소스코드 구조 및 설명
+4.1 VideoPublisher 노드
 
-rclcpp::Node 상속
+노드 이름: video_publisher
 
-영상 파일을 열고, cv::VideoCapture를 이용해 프레임을 읽어 /video 토픽에 퍼블리시
+기능: 지정된 동영상(7_lt_ccw_100rpm_in.mp4)을 읽어 "video" 토픽으로 퍼블리시
 
-STL std::bind를 활용해 타이머 콜백 연결
+퍼블리시 주기: 30ms (약 33Hz)
 
-LineDetector 클래스
+영상 처리 방식:
 
-rclcpp::Node 상속
+OpenCV VideoCapture로 동영상 읽기
 
-/video 토픽 구독
+cv_bridge::CvImage를 이용해 ROS Image 메시지로 변환 후 퍼블리시
 
-image_callback에서 라인 검출 수행
+종료 조건: 영상 끝 도달 시 ROS2 종료
 
-STL std::vector 사용 → 윤곽선(contours) 저장 및 처리
+auto msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toImageMsg();
+pub_->publish(*msg);
 
-설명: Class와 STL을 활용하여 코드 모듈화 및 동적 데이터 관리 용이
+4.2 LineDetector 노드
 
-5.2 STL 활용 예시
+노드 이름: line_detector
 
-윤곽선 저장
+기능: "video" 토픽 구독 후 라인 검출 및 추적
 
-std::vector<std::vector<cv::Point>> contours;
-cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+특징 및 개선점:
 
+ROI 기반 라인 검출: 영상 하단 90픽셀, 폭 640픽셀 영역만 처리
 
-최적 라인 후보 선택
+밝기 보정: ROI 평균 밝기를 목표값 140으로 조정, 대비 및 가중치 적용
 
-double min_dist = 1e9;
-for (const auto &cnt : contours) {
-    cv::Rect rect = cv::boundingRect(cnt);
-    double candidate_x = rect.x + rect.width / 2;
-    double dist = std::abs(candidate_x - prev_center_x_);
-    if (dist < min_dist) { min_dist = dist; best_center_x = candidate_x; }
-}
+이진화 및 윤곽 추출: cv::threshold + cv::findContours로 라인 후보 검출
 
+후보 필터링:
 
-STL std::vector를 사용하면 윤곽선 개수에 상관없이 동적으로 처리 가능
+최소 면적: 60
 
-5.3 ROI 설정 및 밝기 보정
-int roi_height = 90;
-cv::Rect roi_rect(0, frame.rows - roi_height, frame.cols, roi_height);
-cv::Mat roi = frame(roi_rect).clone();
-double shift = 140.0 - cv::mean(roi)[0];
-roi.convertTo(roi, -1, 0.7, shift);
+최소 폭/높이: 3 / 5
 
+세로/가로 비율 >= 0.10
 
-ROI 기반 처리로 영상 전체를 처리하지 않아 성능 향상
+이전 중심값 기반 후보 선택:
 
-5.4 이진화 및 중심 추적
-cv::cvtColor(roi, gray, cv::COLOR_BGR2GRAY);
-cv::threshold(gray, binary, 140, 255, cv::THRESH_BINARY);
+이전 프레임 중심값과 가장 가까운 후보 선택
 
+최대 이동 거리 제한(max_jump) 및 속도 제한(max_speed, reappear_speed) 적용
 
-중심점 smoothing
+lost_count 카운터로 라인 상실 시 보정
 
-prev_center_x_ = prev_center_x_ * 0.7 + target * 0.3;
+에러 계산: 영상 중앙 대비 라인 중심 오차 계산
 
+시각화:
 
-STL과 class 멤버 변수를 활용하여 이전 중심 저장 및 계산
+Original Frame: 입력 영상
 
-5.5 오차 계산
-double error = frame.cols / 2.0 - prev_center_x_;
-RCLCPP_INFO(this->get_logger(), "error:%d, time:%.4f sec", (int)error, elapsed_time);
+Binary with Overlay: 후보 영역과 선택 라인 표시
 
+double error = frame_w / 2.0 - prev_center_x_;
+RCLCPP_INFO(this->get_logger(), "error:%d, time:%.4f sec", (int)error, sec);
 
-화면 중심과 라인 중심의 오차 출력
+4.3 개선된 추적 로직
 
-6. 실험 결과
+lost_count: 라인을 감지하지 못하면 증가, 일정 카운트 이상 시 재출현 처리
 
-라인 검출과 중심점 표시 정상 수행
+속도 제한: 라인 이동 속도 제한을 적용하여 급격한 점프 방지
 
-처리 속도: 평균 33ms/프레임
+재출현 처리: 라인 소실 후 재출현 시 부드러운 추적 적용
 
+5. 실습 과정
 
-7. 분석 및 고찰
+ROS2 워크스페이스 빌드:
 
-ROI 기반 처리로 불필요한 영역 제거 → 처리 속도 향상
-
-밝기 변화가 큰 환경에서는 adaptive thresholding 필요
-
-중심점 smoothing으로 불안정한 움직임 최소화
+colcon build --symlink-install
+source install/setup.bash
 
 
-8. 결론
+퍼블리셔 노드 실행:
 
-ROS2와 OpenCV, STL과 class 기반 설계를 활용한 라인 검출 실습 성공
+ros2 run <package_name> video_publisher
 
-실시간 영상 처리 및 라인트레이싱 알고리즘 이해에 도움
 
+라인 추적 노드 실행:
+
+ros2 run <package_name> line_detector
+
+
+OpenCV 창을 통해 영상 확인 및 라인 추적 상태 관찰
+
+로그를 통해 에러 값 및 처리 시간 확인
+
+6. 결과
+
+영상 퍼블리셔가 정상적으로 동영상 스트리밍
+
+라인 추적 노드가 ROI 영역에서 후보 필터링 후 안정적으로 라인 중심 추적
+
+라인 소실 상황에서 lost_count와 속도 제한 적용으로 안정적 복원
+
+실시간 처리 속도: 프레임당 약 0.02~0.03초
+
+예시 로그
+
+[INFO] [line_detector]: error:-10, time:0.0287 sec
+[INFO] [line_detector]: error:5, time:0.0251 sec
+
+
+OpenCV 시각화
+
+원본 영상: Original Frame
+
+라인 검출 + 후보 표시: Binary with Overlay (빨간: 선택, 파랑: 후보)
+
+7. 결론
+
+ROS2 기반 영상 퍼블리싱과 라인 추적 기능 정상 동작 확인
+
+lost_count 및 속도 제한 적용으로 라인 추적 안정성 향상
