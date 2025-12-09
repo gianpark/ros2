@@ -110,10 +110,6 @@ RCLCPP_INFO(this->get_logger(), "error:%d, time:%.4f sec", (int)error, elapsed_t
 
 7. 분석 및 고찰
 
-STL std::vector를 이용한 윤곽선 저장 → 메모리 관리 효율적
-
-Class 구조로 코드 모듈화 → 유지보수 및 확장 용이
-
 ROI 기반 처리로 불필요한 영역 제거 → 처리 속도 향상
 
 밝기 변화가 큰 환경에서는 adaptive thresholding 필요
