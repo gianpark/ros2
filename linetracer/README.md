@@ -117,6 +117,7 @@ OpenCV 창을 통해 원본 영상 및 라인 검출 결과 확인
 예시 로그:
 
 [INFO] [line_detector]: error:12, time: 0.0234 sec
+
 [INFO] [line_detector]: error:-5, time: 0.0217 sec
 
 
