@@ -27,7 +27,7 @@ VideoPublisher
 
 mp4 파일을 읽어 영상 프레임을 /video1 토픽으로 퍼블리시
 
-LineDetector
+line_subscriber
 
 /video1 토픽의 영상을 구독
 
@@ -44,7 +44,7 @@ ROI(Region of Interest) 추출
 [Video File] → [VideoPublisher] → /video1 → [LineDetector] → Error 출력 및 시각화
 
 
-VideoPublisher는 30ms(≈33FPS) 주기로 프레임을 publish 하며, LineDetector는 이 영상을 받아 실시간 처리를 수행한다.
+VideoPublisher는 30ms(≈33FPS) 주기로 프레임을 publish 하며, line_subscriberr는 이 영상을 받아 실시간 처리를 수행한다.
 
 3. 구현 상세
    
@@ -67,7 +67,7 @@ C++17의 std::bind와 클래스 멤버 함수 바인딩
 
 실패 처리: 영상이 끝나면 rclcpp::shutdown() 수행
 
-3.2 LineDetector 클래스
+3.2 line_subscriber 클래스
 
 라인 검출 알고리즘은 다음 단계를 따른다.
 
