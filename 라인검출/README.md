@@ -1,3 +1,25 @@
+실습과제 : 라인검출 시뮬레이션
+
+패키지명-> line_publisher(pub.cpp), line_subscriber(sub.cpp)
+
+ Publisher 노드
+ 
+- Jestson nano 보드에서 동영상을 입력 받아 영상 토픽을발행
+- 
+- camera_ros2 패키지의 pub.cpp에서 카메라대신 동영상에서 입력 받아 발행하는것으로수정
+- 
+ Subscriber 노드
+
+- WSL2에서 영상을구독하여라인을검출하는노드, 영상처리결과를모니터에출력
+  
+- camera_ros2 패키지의 sub.cpp에서 콜백함수안에 라인 검출코드 추가
+*
+- linedetect_wsl 패키지에 라인 검출 알고리즘을 구현하고 2개의 동영상(5_lt_cw_100rpm_out.mp4,7_lt_ccw_100rpm_in.mp4)을 이용하여시뮬레이션(모의실험)을 수행하고결과를 동영상(영상원본, 라인검출결과, 에러,처리시간 출력)으로 저장
+
+-publisher node와subscriber node 모두를 WSL2에 구현하여 테스트
+
+동영상 파일 출처: https://github.com/2sungryul/simulation.git
+
 5_lt_cw_100rpm_out 실행결과 : https://youtu.be/2kQ4_Qzcz9k
 
 6_lt_ccw_100rpm_out 실행결과 : https://youtu.be/18Mz9PqtEyM
