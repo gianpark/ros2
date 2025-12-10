@@ -6,7 +6,7 @@
 
 8_lt_cw_100rpm_in 실행결과 : https://youtu.be/fUiWoAYmaro
 
-ROS2 기반 라인 검출(Line Detection) 실습 결과 보고서
+ROS2 기반 라인 검출 실습 결과 보고서
 
 작성자: 박기안
 
@@ -17,7 +17,7 @@ ROS2 기반 라인 검출(Line Detection) 실습 결과 보고서
 
 1. 실습 개요
 
-본 실습은 ROS2(Rolling) 환경에서 OpenCV를 사용하여 영상 기반 라인 검출(Line Detection) 기능을 구현하고,
+본 실습은 ROS2 환경에서 OpenCV를 사용하여 영상 기반 라인 검출 기능을 구현하고,
 
 ROS2의 퍼블리셔·서브스크라이버 구조를 통해 실시간 원격접속과 라인 중심 추적 알고리즘을 실행하는 것을 목표로 한다.
 
@@ -41,7 +41,7 @@ ROI(Region of Interest) 추출
 
 2. 시스템 구성도
 3. 
-[Video File] → [VideoPublisher] → /video1 → [LineDetector] → Error 출력 및 시각화
+[Video File] → [VideoPublisher] → /video1 → [line_subscriber] → Error 출력 및 시각화
 
 
 VideoPublisher는 30ms(≈33FPS) 주기로 프레임을 publish 하며, line_subscriberr는 이 영상을 받아 실시간 처리를 수행한다.
@@ -225,7 +225,7 @@ contour 기반은 라인 폭이 넓거나 여러 요소가 겹칠 때 오검출 
 
 mp4 영상을 ROS2 토픽으로 송출 (VideoPublisher)
 
-영상 기반 ROI 추출 및 라인 후보 검출(LineDetector)
+영상 기반 ROI 추출 및 라인 후보 검출
 
 라인 중심 추정, 소실 복구 로직 포함
 
