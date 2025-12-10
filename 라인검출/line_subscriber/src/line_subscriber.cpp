@@ -5,18 +5,18 @@
 #include <chrono>
 #include <vector>
 
-class LineDetector : public rclcpp::Node
+class line_subscriber : public rclcpp::Node
 {
 public:
-    LineDetector()
+    line_subscriber()
     : Node("line_detector"), prev_center_x_(-1.0), lost_count_(0)
     {
         // video1 토픽으로부터 Image 메시지를 구독
         subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
             "video1", rclcpp::QoS(10),
-            std::bind(&LineDetector::image_callback, this, std::placeholders::_1));
+            std::bind(&line_subscriber::image_callback, this, std::placeholders::_1));
 
-        RCLCPP_INFO(this->get_logger(), "LineDetector Node Started");
+        RCLCPP_INFO(this->get_logger(), "line_subscriber Node Started");
     }
 
 private:
@@ -194,7 +194,7 @@ private:
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<LineDetector>());
+    rclcpp::spin(std::make_shared<line_subscriber>());
     rclcpp::shutdown();
     return 0;
 }
