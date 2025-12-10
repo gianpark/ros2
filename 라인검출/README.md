@@ -1,27 +1,27 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-실습과제 : 라인검출 시뮬레이션
+# 실습과제 : 라인검출 시뮬레이션
 
 패키지명-> line_publisher(pub.cpp), line_subscriber(sub.cpp)
 
  Publisher 노드
  
 - Jestson nano 보드에서 동영상을 입력 받아 영상 토픽을발행
-- 
+  
 - camera_ros2 패키지의 pub.cpp에서 카메라대신 동영상에서 입력 받아 발행하는것으로수정
-- 
+  
  Subscriber 노드
 
 - WSL2에서 영상을구독하여라인을검출하는노드, 영상처리결과를모니터에출력
   
 - camera_ros2 패키지의 sub.cpp에서 콜백함수안에 라인 검출코드 추가
-*
-- linedetect_wsl 패키지에 라인 검출 알고리즘을 구현하고 2개의 동영상(5_lt_cw_100rpm_out.mp4,7_lt_ccw_100rpm_in.mp4)을 이용하여시뮬레이션(모의실험)을 수행하고결과를 동영상(영상원본, 라인검출결과, 에러,처리시간 출력)으로 저장
+
+-linedetect_wsl 패키지에 라인 검출 알고리즘을 구현하고 2개의 동영상(5_lt_cw_100rpm_out.mp4,7_lt_ccw_100rpm_in.mp4)을 이용하여시뮬레이션(모의실험)을 수행하고결과를 동영상(영상원본, 라인검출결과, 에러,처리시간 출력)으로 저장
 
 -publisher node와subscriber node 모두를 WSL2에 구현하여 테스트
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-동영상 파일 출처: https://github.com/2sungryul/simulation.git
+원본 동영상 파일 출처: https://github.com/2sungryul/simulation.git
 
 5_lt_cw_100rpm_out 실행결과 : https://youtu.be/2kQ4_Qzcz9k
 
@@ -31,7 +31,9 @@
 
 8_lt_cw_100rpm_in 실행결과 : https://youtu.be/fUiWoAYmaro
 
-ROS2 기반 라인 검출 실습 결과 보고서
+-------------------------------------------------------------------------------------------
+
+# ROS2 기반 라인 검출 실습 결과 보고서
 
 작성자: 박기안
 
@@ -40,7 +42,7 @@ ROS2 기반 라인 검출 실습 결과 보고서
 작성일: 2025.12.10
 
 
-1. 실습 개요
+## 1. 실습 개요
 
 본 실습은 ROS2 환경에서 OpenCV를 사용하여 영상 기반 라인 검출 기능을 구현하고,
 
@@ -64,21 +66,21 @@ ROI(Region of Interest) 추출
 
 라인 중심의 에러(error) 계산
 
-2. 시스템 구성도
-3. 
+## 2. 시스템 구성도
+ 
 [Video File] → [VideoPublisher] → /video1 → [line_subscriber] → Error 출력 및 시각화
 
 
 VideoPublisher는 30ms(≈33FPS) 주기로 프레임을 publish 하며, line_subscriberr는 이 영상을 받아 실시간 처리를 수행한다.
 
-3. 구현 상세
+## 3. 구현 상세
    
    
-3.1 VideoPublisher 클래스
+### 3.1 VideoPublisher 클래스
 
 VideoPublisher 클래스는 다음 기능을 수행한다.
 
-cv::VideoCapture로 mp4 파일 오픈
+    cv::VideoCapture 로 mp4 파일 오픈
 
 OpenCV(Mat)를 ROS2 sensor_msgs::Image로 변환(cv_bridge 사용)
 
@@ -92,17 +94,17 @@ C++17의 std::bind와 클래스 멤버 함수 바인딩
 
 실패 처리: 영상이 끝나면 rclcpp::shutdown() 수행
 
-3.2 line_subscriber 클래스
+### 3.2 line_subscriber 클래스
 
 라인 검출 알고리즘은 다음 단계를 따른다.
 
-3.2.1 ROI 설정
+#### 3.2.1 ROI 설정
 
 전체 프레임 중 하단 90px 구간만 활용한다.
 
-int roi_height = 90;
+    int roi_height = 90;
 
-int roi_y = frame_h - roi_height;
+    int roi_y = frame_h - roi_height;
 
 
 하단을 사용하는 이유:
@@ -111,24 +113,24 @@ int roi_y = frame_h - roi_height;
 
 불필요한 연산 감소 → 처리 속도 증가
 
-3.2.2 밝기 보정
+#### 3.2.2 밝기 보정
 
 영상의 주변 환경 변화(밝기/조도)에 따라 threshold 안정화를 위해 밝기 보정 수행.
 
-double shift = target_mean - cv::mean(roi)[0];
+    double shift = target_mean - cv::mean(roi)[0];
 
-roi.convertTo(roi, -1, 0.7, shift);
+    roi.convertTo(roi, -1, 0.7, shift);
 
 
 목표 밝기: 평균 140 수준
 
 gain=0.7, bias=shift 적용
 
-3.2.3 이진화 & 윤곽 검출
+#### 3.2.3 이진화 & 윤곽 검출
 
-cv::threshold(gray, binary, 140, 255, cv::THRESH_BINARY);
+    cv::threshold(gray, binary, 140, 255, cv::THRESH_BINARY);
 
-cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
 
 윤곽(contour)의 bounding box를 분석하여 라인 후보를 걸러냄.
@@ -141,15 +143,15 @@ cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
 세로 방향 비율(rect.height / rect.width ≥ 0.1)
 
-3.2.4 ROI 상단(Top 30%) 제거
+#### 3.2.4 ROI 상단(Top 30%) 제거
 
 급커브 상황에서 라인이 상단으로 빠르게 벗어나는 경우 오검출 방지:
 
-if (rect.y + rect.height < roi_height * 0.30)
+    if (rect.y + rect.height < roi_height * 0.30)
 
     continue;
 
-3.2.5 라인 중심 추정 및 보정 알고리즘
+#### 3.2.5 라인 중심 추정 및 보정 알고리즘
 
 ① 정상 검출 시
 
@@ -163,7 +165,7 @@ if (rect.y + rect.height < roi_height * 0.30)
 
 1차 지연 필터 (exponential smoothing)
 
-prev_center_x_ = prev_center_x_ * 0.7 + target * 0.3;
+    prev_center_x_ = prev_center_x_ * 0.7 + target * 0.3;
 
 ② 라인이 사라진 경우(lost)
 
@@ -179,22 +181,22 @@ prev_center_x > 0.7W	오른쪽 상단으로 사라짐	화면 1/5 지점
 
 이 추정은 C++의 조건 분기를 통하여 STL 기반 논리 처리로 구현된다.
 
-3.2.6 error 계산
+#### 3.2.6 error 계산
 
-double error = frame_w / 2.0 - prev_center_x_;
+    double error = frame_w / 2.0 - prev_center_x_;
 
 
 양수: 라인이 오른쪽으로 치우침
 
 음수: 왼쪽으로 치우침
 
-3.2.7 실행 시간 측정
+#### 3.2.7 실행 시간 측정
 
-auto start = std::chrono::steady_clock::now();
-...
-auto end = std::chrono::steady_clock::now();
+    auto start = std::chrono::steady_clock::now();
+    ...
+    auto end = std::chrono::steady_clock::now();
 
-std::chrono::duration<double> elapsed = end - start;
+    std::chrono::duration<double> elapsed = end - start;
 
 
 약 0.02 ~ 0.04초(25 ~ 45FPS)의 처리 속도를 보임.
@@ -211,7 +213,7 @@ Binary with Overlay – 이진화 + contour 표시 + 라인 중심 표시
 
 라인이 검출되는 경우 빨간 원으로 중심 표시.
 
-4.2 로그 출력 예시
+### 4.2 로그 출력 예시
 
 error:-38, time:0.0285 sec
 
@@ -224,9 +226,9 @@ error는 라인 중심의 프레임 중앙 대비 편차
 
 time은 처리 시간(sec)
 
-5. 고찰
+## 5. 고찰
    
-5.1 성능 분석
+### 5.1 성능 분석
 
 ROI 기반 연산 감소로 평균 30~40FPS 처리 가능
 
@@ -234,7 +236,7 @@ contour 기반 라인 검출은 속도가 빠르지만 급커브 대응이 어�
 
 "사라짐 복구 알고리즘" 적용으로 급격한 상황에서도 안정적인 중심 추정 가능
 
-5.2 한계점
+### 5.2 한계점
 
 단순 threshold 기반 이진화는 조명 변화에 취약
 
@@ -244,7 +246,7 @@ contour 기반은 라인 폭이 넓거나 여러 요소가 겹칠 때 오검출 
 
 
 
-6. 결론
+## 6. 결론
 
 이번 실습에서는 ROS2와 OpenCV를 활용하여 다음 기능을 성공적으로 구현하였다.
 
