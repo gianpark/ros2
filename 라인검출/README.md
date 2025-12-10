@@ -15,7 +15,7 @@
   
 - camera_ros2 패키지의 sub.cpp에서 콜백함수안에 라인 검출코드 추가
 
--linedetect_wsl 패키지에 라인 검출 알고리즘을 구현하고 2개의 동영상(5_lt_cw_100rpm_out.mp4,7_lt_ccw_100rpm_in.mp4)을 이용하여시뮬레이션(모의실험)을 수행하고결과를 동영상(영상원본, 라인검출결과, 에러,처리시간 출력)으로 저장
+-linedetect_wsl  패키지에 라인 검출 알고리즘을 구현하고 2개의 동영상(5_lt_cw_100rpm_out.mp4,7_lt_ccw_100rpm_in.mp4)을 이용하여 시뮬레이션(모의실험)을 수행하고 결과를 동영상(영상원본, 라인검출결과, 에러, 처리시간 출력)으로 저장
 
 -publisher node와subscriber node 모두를 WSL2에 구현하여 테스트
 
@@ -50,11 +50,11 @@ ROS2의 퍼블리셔·서브스크라이버 구조를 통해 실시간 원격접
 
 본 프로젝트는 다음 두 개의 노드로 구성된다.
 
-VideoPublisher
+**VideoPublisher**
 
 mp4 파일을 읽어 영상 프레임을 /video1 토픽으로 퍼블리시
 
-line_subscriber
+**line_subscriber**
 
 /video1 토픽의 영상을 구독
 
