@@ -75,7 +75,7 @@ private:
             if (rect.width < 3 || rect.height < 5) continue;
             if ((float)rect.height / rect.width < 0.10f) continue;
 
-            // === ⬅ 추가: 위쪽으로 사라짐(ROI 상단 30%) 차단 ===
+            // ===  위쪽으로 사라짐(ROI 상단 30%) 차단 ===
             if (rect.y + rect.height < roi_height * 0.30)
                 continue;
 
